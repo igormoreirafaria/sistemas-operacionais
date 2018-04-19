@@ -6,6 +6,8 @@
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #define SHELLMARK "$ "
 #define true 1
 #define false 0

@@ -150,7 +150,7 @@ int main(int argc, char **argv[]){
 		        	dup2(pc[0], 0);/* Make stdin come from read
                             end of pipe. */
 		        	close( pc[1]);
-            		close( cp[0]);
+            		//close( cp[0]);
             		execvp(caminho, args);
         			perror("No exec");
             		exit(1);
@@ -158,49 +158,34 @@ int main(int argc, char **argv[]){
             	default:
             		close(pc[0]);
             		close(cp[1]);
-            		while(read(cp[0], &ch, 1) == 1){
-            			//write(1,&ch, 1);
-            		}
+            		
             		waitpid(pid, &status, WCONTINUED);
 			}
 
-			
-
-			if(redirecionamento != NULL){
+			if(redirecionamento != NULL) {
 		    	switch( pid = fork() ){
 			        case -1: 
 			            perror("Can't fork");
 			            exit(1);
 			        case 0:
-			        	
-			        	//dup2(cp[1], 1);
-			        	
+			        	dup2(cp[1], 1);
 			        	dup2(pc[0], 0); 
-
-			       		FILE *arq = fopen(arquivo, "w");
-			       		char *str = (char*)malloc(1024*sizeof(char));
-                        int i = 0;			       		
-                        while(read(cp[0], &ch, 1) == 1){
-                            write(1,&ch,1);			       			
-                            fprintf(arq, "%s", &ch);                            
-                            i++;			       		
-                        }
-                        
+						char *filepath;
+						sprintf(filepath,"/home/rafael/Documents/sistemas-operacionais/teste.txt/%s", arquivo);
+			       		int filedesc = open(filepath, O_WRONLY);
+						while(read(cp[0], &ch, 1)==1) {
+							write(filedesc, &ch, 1);
+						}
 			        	close( pc[1]);
 	            		close( cp[0]);
 	            		
 	            		exit(1);
 
 	            	default:
-
-	            		waitpid(pid, &status, WCONTINUED);
-	            		
+	            		waitpid(pid, &status, WCONTINUED);	
 				}   			
        		}
-
-
 		}		
 	}
-
 	return 0;
 }
