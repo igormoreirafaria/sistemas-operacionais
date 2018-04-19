@@ -130,7 +130,6 @@ int main(int argc, char **argv[]){
 		//cocatena o caminho /usr/bin/ ao comando digitado
 		char *caminho = (char*)malloc(1024*sizeof(char));
 		sprintf(caminho, "/bin/%s", fcomando);
-		printf("argumento ta aqui: %s\n", argumento);
 		args[0] = fcomando;
 		args[1] = argumento;
 
@@ -167,28 +166,28 @@ int main(int argc, char **argv[]){
 
 			
 
-			/*if(redirect == 2){
+			if(redirecionamento != NULL){
 		    	switch( pid = fork() ){
 			        case -1: 
 			            perror("Can't fork");
 			            exit(1);
 			        case 0:
-			        	dup2(cp[1], 1);/* Make stdout go to write
-	                            end of pipe. 
-			        	dup2(pc[0], 0); Make stdin come from read
-	                            end of pipe. 
+			        	
+			        	dup2(cp[1], 1);
+			        	
+			        	dup2(pc[0], 0); 
 
-			       		FILE *arq = fopen(args[2], "w");
-
+			       		FILE *arq = fopen(arquivo, "w");
+			       		char *str;
 			       		while(read(cp[0], &ch, 1) == 1){
 
-			       			fwrite(&ch,1,1,arq);
+			       			write(*str,&ch,1);
+			       			fwrite(str , 1 , sizeof(str) , arq );
 			       		}
 
 			        	close( pc[1]);
 	            		close( cp[0]);
-	            		execvp(caminho, args);
-	        			perror("No exec");
+	            		
 	            		exit(1);
 
 	            	default:
@@ -196,7 +195,7 @@ int main(int argc, char **argv[]){
 	            		waitpid(pid, &status, WCONTINUED);
 	            		
 				}   			
-       		}*/
+       		}
 
 
 		}		
