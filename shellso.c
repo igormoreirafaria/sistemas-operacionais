@@ -159,7 +159,7 @@ int main(int argc, char **argv[]){
             		close(pc[0]);
             		close(cp[1]);
             		while(read(cp[0], &ch, 1) == 1){
-            			write(1,&ch, 1);
+            			//write(1,&ch, 1);
             		}
             		waitpid(pid, &status, WCONTINUED);
 			}
@@ -173,18 +173,19 @@ int main(int argc, char **argv[]){
 			            exit(1);
 			        case 0:
 			        	
-			        	dup2(cp[1], 1);
+			        	//dup2(cp[1], 1);
 			        	
 			        	dup2(pc[0], 0); 
 
 			       		FILE *arq = fopen(arquivo, "w");
-			       		char *str;
-			       		while(read(cp[0], &ch, 1) == 1){
-
-			       			write(*str,&ch,1);
-			       			fwrite(str , 1 , sizeof(str) , arq );
-			       		}
-
+			       		char *str = (char*)malloc(1024*sizeof(char));
+                        int i = 0;			       		
+                        while(read(cp[0], &ch, 1) == 1){
+                            write(1,&ch,1);			       			
+                            fprintf(arq, "%s", &ch);                            
+                            i++;			       		
+                        }
+                        
 			        	close( pc[1]);
 	            		close( cp[0]);
 	            		
