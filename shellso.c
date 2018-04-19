@@ -15,7 +15,7 @@ int main(int argc, char **argv[]){
     int incount = 0, outcount = 0;
 	int status;
 	int redirect;
-
+	args = (char**)malloc(3*sizeof(char*));
 
     /* Make pipes */
     if( pipe(pc) < 0){
@@ -122,15 +122,17 @@ int main(int argc, char **argv[]){
 	        strcpy(arquivo,lista[tamcm-1].palavras);
 	    }
 
-		if(!isRedirectCorrect(args, &argssize)){
+		/*if(!isRedirectCorrect(args, &argssize)){
 			printf("Nao e possivel utilizar este simbolo para redirecionar a saida do programa.\n");
 			continue;
-		}
+		}*/
 
 		//cocatena o caminho /usr/bin/ ao comando digitado
 		char *caminho = (char*)malloc(1024*sizeof(char));
 		sprintf(caminho, "/bin/%s", fcomando);
 		printf("argumento ta aqui: %s\n", argumento);
+		args[0] = fcomando;
+		args[1] = argumento;
 
 		//verifica se o comando e valido
 		if(!isCommand(caminho)){
@@ -150,7 +152,7 @@ int main(int argc, char **argv[]){
                             end of pipe. */
 		        	close( pc[1]);
             		close( cp[0]);
-            		execvp(caminho, &argumento);
+            		execvp(caminho, args);
         			perror("No exec");
             		exit(1);
 
