@@ -9,9 +9,11 @@
 #define SHELLMARK "$ "
 #define true 1
 #define false 0
+typedef struct x{
+ char palavras[100];
 
-char** tokeniza(char *comando, char **args, int *argssize);
+}lista_comando;
+void tokeniza(char *comando, char **args, char **redi, int *argssize);
 
 int isCommand(char *caminho);
-int isRedirect(char **args, int *agrssize);
 int isRedirectCorrect(char **args, int *agrssize);
