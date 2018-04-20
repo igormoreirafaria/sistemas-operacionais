@@ -47,6 +47,18 @@ void tokeniza(char *comando, char **args, char **redi, int *agrssize){
 	return args;*/
 }
 
+void verificaArgumento(char *argumento) {
+	if (argumento == '/') {
+		return true;
+	} else if (argumento == '&'){
+		return true;
+	} else if (argumento == '|') {
+		return true;
+	} else {
+		return false;
+	}
+}
+
 int isCommand(char *caminho){
 	FILE *f;
 	if(fopen(caminho, "r")){
