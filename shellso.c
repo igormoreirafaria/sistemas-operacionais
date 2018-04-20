@@ -1,8 +1,7 @@
 #include "shellso.h"	
 
-
-
 int main(int argc, char **argv[]){
+	//variaveis
 	char *comando = (char*)malloc(1024 * sizeof(char));
 	char *copiaSegura = (char*)malloc(1024 * sizeof(char));
 	char **args;
@@ -42,23 +41,18 @@ int main(int argc, char **argv[]){
 		if(comando[strlen(comando)-1] == '\n'){ 
 			comando[strlen(comando)-1] = '\0';
 		}
-
 		//tokeniza a entrada do usuario
-		//tokeniza(comando, args, redi, &argssize);
-				
+		//tokeniza(comando, args, redi, &argssize);		
 		char *argumento;
 		char *redirecionamento; 
 		char *arquivo;
 		char *fcomando;
 
-
 		int i = 0,tamanho;
 	    char *palavra;
 	    char *ncomando;
-	    
 
 	    tamanho = strlen(comando);
-
 	    ncomando = (char*)malloc(tamanho*sizeof(char));
 	    int tamcm = 0;
 	    char *com; 
@@ -80,33 +74,34 @@ int main(int argc, char **argv[]){
 
 	    char *pal;
 	    int n = 0; 
-	    
 	    pal = strtok(ncomando," ");
-	    while( pal !=  NULL ) {
+
+	    while(pal !=  NULL) {
 			strcpy(lista[n].palavras,pal);
 			pal  =  strtok(NULL," ");
 			n++;
 	    }  
-	    int j = 0,k = 0,r = 0,o = 0,confirma = -1;
-	    for(i = 0;i<tamcm;i++){
-	       
+
+		int k = 0;
+		int j = 0;
+		int r = 0;
+		int o = 0;
+		int confirma = -1;
+	    
+		for(i = 0; i < tamcm; i++){    
 	       k = strlen(lista[i].palavras);
-	       
-	     
-	       for(j = 0;j<k;j++){
+	       for(j = 0; j < k; j++){
 	           o = lista[i].palavras[j];
-	           if(o == 47){//Verica argumento do comando
-	                
+	           if(o == 47) {//Verica argumento do comando
 	                r = strlen(lista[i].palavras);
 	                argumento = (char*)malloc(r*sizeof(char));
 	                strcpy(argumento,lista[i].palavras);
 	           }
-	           if(o == 60 || o == 62){//Verifica redirecionamento
+	           if(o == 60 || o == 62) {//Verifica redirecionamento
 	                //printf("Redirecionamento  =  %s \n",lista[i].palavras);
 	                r = strlen(lista[i].palavras);
 	                redirecionamento = (char*)malloc(r*sizeof(char));
 	                strcpy(redirecionamento,lista[i].palavras);
-					
 	                confirma = 1; 
 	           }        
 	       }      
@@ -137,7 +132,7 @@ int main(int argc, char **argv[]){
 		if(!isCommand(caminho)){
 			printf("Comando %s nao valido\n", comando);
 		}
-		//se valido faz o fork
+		//se valido realiza o fork
 		else{
 			/* Create a child to run command. */
 		    switch( pid = fork() ){
@@ -158,18 +153,18 @@ int main(int argc, char **argv[]){
             	default:
             		close(pc[0]);
             		close(cp[1]);
-            		
             		waitpid(pid, &status, WCONTINUED);
 			}
 
 			if(redirecionamento != NULL) {
-		    	switch( pid = fork() ){
+		    	switch(pid = fork()) {
 			        case -1: 
 			            perror("Can't fork");
 			            exit(1);
 			        case 0:
 			        	dup2(cp[1], 1);
 			        	dup2(pc[0], 0); 
+						//define o caminho para o arquivo de saida
 						char *filepath;
 						sprintf(filepath,"/home/rafael/Documents/sistemas-operacionais/teste.txt/%s", arquivo);
 			       		int filedesc = open(filepath, O_WRONLY);
@@ -178,9 +173,7 @@ int main(int argc, char **argv[]){
 						}
 			        	close( pc[1]);
 	            		close( cp[0]);
-	            		
 	            		exit(1);
-
 	            	default:
 	            		waitpid(pid, &status, WCONTINUED);	
 				}   			
