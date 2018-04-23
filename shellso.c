@@ -15,6 +15,7 @@ int main(int argc, char **argv[]){
 	int status;
 	int redirect;
 	args = (char**)malloc(3*sizeof(char*));
+	FILE *arq;
 
     /* Make pipes */
     if( pipe(pc) < 0){
@@ -134,41 +135,66 @@ int main(int argc, char **argv[]){
 		}
 		//se valido realiza o fork
 		else{
-			/* Create a child to run command. */
-		    switch( pid = fork() ){
-		        case -1: 
-		            perror("Can't fork");
-		            exit(1);
-		        case 0:
-		        	dup2(cp[1], 1);/* Make stdout go to write
-                            end of pipe. */
-		        	dup2(pc[0], 0);/* Make stdin come from read
-                            end of pipe. */
-		        	close( pc[1]);
-            		//close( cp[0]);
-            		execvp(caminho, args);
-        			perror("No exec");
-            		exit(1);
-
-            	default:
-            		close(pc[0]);
-            		close(cp[1]);
-            		waitpid(pid, &status, WCONTINUED);
-			}
-
-			if(redirecionamento != NULL) {
-		    	switch(pid = fork()) {
+			
+			if(redirecionamento == NULL){
+				printf("nao redireciona\n");
+				switch( pid = fork() ){
 			        case -1: 
 			            perror("Can't fork");
 			            exit(1);
 			        case 0:
+			        	close( pc[1]);
+	            		//close( cp[0]);
+	            		execvp(caminho, args);
+	        			perror("No exec");
+	            		exit(1);
+
+	            	default:
+	            		
+	            		waitpid(pid, &status, WCONTINUED);
+				}
+			}if(redirecionamento != NULL) {
+				
+				char *filepath = (char*)malloc(1024 * sizeof(char));
+
+				/* Create a child to run command. */
+			    switch( pid = fork() ){
+			        case -1: 
+			            perror("Can't fork");
+			            exit(1);
+			        case 0:
+
 			        	dup2(cp[1], 1);
-			        	dup2(pc[0], 0); 
+
+			        	
+			        	dup2(pc[0], 0);/* Make stdin come from read
+	                            end of pipe. */
+			        	close( pc[1]);
+	            		//close( cp[0]);
+	            		execvp(caminho, args);
+	        			perror("No exec");
+	            		exit(1);
+
+	            	default:
+	            	
+	            		waitpid(pid, &status, WCONTINUED);
+				}
+				
+				
+		    	switch(pid = fork()) {
+			        case -1: 
+			            perror("Can't fork");
+			            exit(1);
+			        case 0: 
 						//define o caminho para o arquivo de saida
-						char *filepath;
-						sprintf(filepath,"/home/rafael/Documents/sistemas-operacionais/teste.txt/%s", arquivo);
+						
+						sprintf(filepath,"/home/igor/Documents/sistemas-operacionais/%s", arquivo);
+						
+						arq = fopen(arquivo,"w");
+						fclose(arq);
 			       		int filedesc = open(filepath, O_WRONLY);
 						while(read(cp[0], &ch, 1)==1) {
+
 							write(filedesc, &ch, 1);
 						}
 			        	close( pc[1]);

@@ -16,6 +16,6 @@ typedef struct x{
 
 }lista_comando;
 void tokeniza(char *comando, char **args, char **redi, int *argssize);
-
+int verificaArgumento(char *argumento);
 int isCommand(char *caminho);
 int isRedirectCorrect(char **args, int *agrssize);

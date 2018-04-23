@@ -47,12 +47,12 @@ void tokeniza(char *comando, char **args, char **redi, int *agrssize){
 	return args;*/
 }
 
-void verificaArgumento(char *argumento) {
-	if (argumento == '/') {
+int verificaArgumento(char *argumento) {
+	if (argumento == "/") {
 		return true;
-	} else if (argumento == '&'){
+	} else if (argumento == "&"){
 		return true;
-	} else if (argumento == '|') {
+	} else if (argumento == "|") {
 		return true;
 	} else {
 		return false;

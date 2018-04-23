@@ -1,12 +1,1 @@
-Desktop
-Documents
-Downloads
-Dropbox
-eclipse-workspace
-Music
-Pictures
-Public
-Templates
-Untitled Folder
-Videos
-Visual_Paradigm_CE_15.0
+igor
