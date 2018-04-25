@@ -105,7 +105,7 @@ int main(int argc, char **argv[]){
 				if(strcmp(redirecionamento, "=>")==0){
 					
 
-				/* Create a child to run command. 
+				/* Create a child to run command.*/ 
 			    switch( pid = fork() ){
 			        case -1: 
 			            perror("Can't fork");
@@ -116,7 +116,7 @@ int main(int argc, char **argv[]){
 
 			        	
 			        	close(pc[0]);/* Make stdin come from read
-	                            end of pipe. 
+	                            end of pipe. */
 			        	close( pc[1]);
 	            		close( cp[0]);
 	            		execvp(caminho, comandoComArgumentos);
@@ -150,10 +150,12 @@ int main(int argc, char **argv[]){
 						}
 			        	close( pc[1]);
 	            		close( cp[0]);
+	            		
 	            		exit(1);
 	            	default:
-	            		waitpid(pid, &status, WCONTINUED);	
-				}   */
+	            		waitpid(pid, &status, WCONTINUED);
+	            		
+				}   
 				}else
 				if(strcmp(redirecionamento, "<=")==0){
 					switch(pid = fork()) {
@@ -182,6 +184,7 @@ int main(int argc, char **argv[]){
 
 		            		waitpid(pid, &status, WCONTINUED);
 							close(cp[1]);
+							
 					}
 
 					switch(pid = fork()) {
@@ -199,7 +202,7 @@ int main(int argc, char **argv[]){
 							
 							execvp(caminho, comandoComArgumentos);
 							perror("No exec");
-							close(cp[0]);
+							
 							close(pc[0]);
 							close(pc[1]);
 
@@ -209,6 +212,8 @@ int main(int argc, char **argv[]){
 		            	default:
 
 		            		waitpid(pid, &status, WCONTINUED);
+		            		close(cp[0]);
+
 					}
 
 				}

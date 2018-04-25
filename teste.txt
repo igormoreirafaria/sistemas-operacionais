@@ -1,1 +1,12 @@
-/home/igor
+bla
+bla.txt
+funcShellso.c
+igor
+ls
+Makefile
+pipe.c
+shellso
+shellso.c
+shellso.h
+teste.txt
+tp1.pdf
