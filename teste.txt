@@ -1,1 +1,1 @@
-igor
+/home/igor

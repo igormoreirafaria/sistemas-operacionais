@@ -1,62 +1,50 @@
 #include "shellso.h"
 
-void tokeniza(char *comando, char **args, char **redi, int *agrssize){
-	
-	/*int i=0, spaceCount=0;
-
+char** tokeniza(char *entrada, int *argssize){
+	char**args;
+	char *copiaSegura = (char*)malloc(strlen(entrada)*sizeof(char));
+	strcpy(copiaSegura, entrada);
 	char *token;
-	//tratamento caso haja espaco no final da string
-	if(comando[strlen(comando)-1] == ' '){
-		comando[strlen(comando)-1] = '\0';
-	}
-	//conta quantos espacos ha na string
-	while(comando[i]){
-		if(isspace(comando[i])) spaceCount++;
-		i++;
-	}
-	*agrssize = spaceCount + 1;
-	args = (char**)malloc((spaceCount * sizeof(char*))+1);
-	redi = (char**)malloc((2 * sizeof(char*)));
-
-	//tokeniza a string salvando os tokens no vetor args
-	token = strtok(comando, " ");
-	i = 0;
-	while(token != "=>"){
-		args[i] = (char*)malloc(strlen(token)*sizeof(char));
-		
-		args[i] = token;
-		token = strtok(NULL, " ");
-		i++;
-	}
-	i=0;
+	*argssize=0;
+	token = strtok(copiaSegura, " ");
 	while(token != NULL){
-		redi[i] = (char*)malloc(strlen(token)*sizeof(char));
-		redi[i] = token;
+		*argssize += 1;
+		token = strtok(NULL, " ");
+	}
+	
+	
+	strcpy(copiaSegura, entrada);
+	args = (char**)malloc(*argssize*sizeof(char*));
+	
+	token = strtok(copiaSegura, " ");
+	int i = 0;
+	while(token != NULL){
+		args[i] = (char*)malloc(strlen(token)*sizeof(char));
+		strcpy(args[i], token);
 		token = strtok(NULL, " ");
 		i++;
 	}
+	
 
-	for (int j = 0; j < 2; ++j)
-	{
-		/* code 
-		printf("%s\n", redi[i]);
-	}
-
-
-
-	return args;*/
+	return args;
 }
 
-int verificaArgumento(char *argumento) {
-	if (argumento == "/") {
-		return true;
-	} else if (argumento == "&"){
-		return true;
-	} else if (argumento == "|") {
-		return true;
-	} else {
-		return false;
+int verificaSimbolos(char **args, int argssize) {
+	for(int i = 0; i < argssize; i++){
+		if(strcmp(args[i], "=>") == 0 || strcmp(args[i], "<=") == 0 || strcmp(args[i], "|") == 0 || strcmp(args[i], "&") == 0 ){
+			return i;
+		}
 	}
+	return 0;
+}
+
+char* getSimbolos(char **args, int argssize) {
+	for(int i = 0; i < argssize; i++){
+		if(strcmp(args[i], "=>") == 0 || strcmp(args[i], "<=") == 0 || strcmp(args[i], "|") == 0 || strcmp(args[i], "&") == 0 ){
+			return args[i];
+		}
+	}
+	return NULL;
 }
 
 int isCommand(char *caminho){
@@ -69,11 +57,62 @@ int isCommand(char *caminho){
 }
 
 
-int isRedirectCorrect(char **args, int *agrssize){
-	for (int i = 0; i < *agrssize; i++){
+int isRedirectCorrect(char **args, int *argssize){
+	for (int i = 0; i < *argssize; i++){
 		if (!strcmp(args[i], "<") || !strcmp(args[i], ">")){
 			return false;
 		} 
 	}
 	return true;
+}
+
+char* getComando(char** args){
+	return args[0];
+}
+
+char ** getArgumentos(char **args, int argssize){
+	int simboloIndex = verificaSimbolos(args, argssize);
+	if(simboloIndex != 0){
+		if(strcmp(args[simboloIndex],"=>")){
+			char **argumentos = (char**)malloc(simboloIndex * sizeof(char*));
+			for(int i = 0; i < simboloIndex; i++){
+				argumentos[i] = args[i];
+			}
+			return argumentos;	
+		}else
+		if(strcmp(args[simboloIndex],"<=")){
+			char **argumentos = (char**)malloc(simboloIndex+1 * sizeof(char*));
+			for(int i = 0; i < simboloIndex; i++){
+				argumentos[i] = args[i];
+			}
+			argumentos[simboloIndex+1] = NULL;
+			return argumentos;
+		}
+	}else{
+		char **argumentos = (char**)malloc(argssize * sizeof(char*));
+		for(int i = 0; i< argssize; i++){
+			argumentos[i] = args[i];
+		}
+		return argumentos;
+	}
+
+	
+}
+
+char* getRedirecionamento(char **args, int argssize){
+	for(int i = 0; i < argssize; i++){
+		if(strcmp(args[i], "=>") == 0 || strcmp(args[i], "<=") == 0 || strcmp(args[i], "|") == 0 || strcmp(args[i], "&") == 0 ){
+			return args[i];
+		}
+	}
+	return NULL;
+}
+
+char* getArquivo(char **args, int argssize){
+	for(int i = 0; i < argssize; i++){
+		if(strcmp(args[i], "=>") == 0 || strcmp(args[i], "<=") == 0 || strcmp(args[i], "|") == 0 || strcmp(args[i], "&") == 0 ){
+			return args[i+1];
+		}
+	}
+	return NULL;
 }

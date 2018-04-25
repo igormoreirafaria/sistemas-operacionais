@@ -2,7 +2,7 @@
 
 int main(int argc, char **argv[]){
 	//variaveis
-	char *comando = (char*)malloc(1024 * sizeof(char));
+	char *entrada = (char*)malloc(1024 * sizeof(char));
 	char *copiaSegura = (char*)malloc(1024 * sizeof(char));
 	char **args;
 	char **redi;
@@ -14,7 +14,7 @@ int main(int argc, char **argv[]){
     int incount = 0, outcount = 0;
 	int status;
 	int redirect;
-	args = (char**)malloc(3*sizeof(char*));
+	
 	FILE *arq;
 
     /* Make pipes */
@@ -33,119 +33,65 @@ int main(int argc, char **argv[]){
 		 //imprime $ na tela
 		printf(SHELLMARK);
 		//pega a entrada do terminal
-		fgets(comando, 1024, stdin); //pega a entrada do terminal
-		strcpy(copiaSegura, comando);
+		fgets(entrada, 1024, stdin); //pega a entrada do terminal
+		strcpy(copiaSegura, entrada);
 		if(!strcmp(copiaSegura, "quit\n")) break;
 		//caso o usuario digite enter o loop salta pra proxima iteracao
 		if(!strcmp(copiaSegura, "\n")) continue;
 		//remove o \n da string
-		if(comando[strlen(comando)-1] == '\n'){ 
-			comando[strlen(comando)-1] = '\0';
+		if(entrada[strlen(entrada)-1] == '\n'){ 
+			entrada[strlen(entrada)-1] = '\0';
 		}
 		//tokeniza a entrada do usuario
-		//tokeniza(comando, args, redi, &argssize);		
-		char *argumento;
+		
+		char **comandoComArgumentos;
 		char *redirecionamento; 
 		char *arquivo;
-		char *fcomando;
-
-		int i = 0,tamanho;
-	    char *palavra;
-	    char *ncomando;
-
-	    tamanho = strlen(comando);
-	    ncomando = (char*)malloc(tamanho*sizeof(char));
-	    int tamcm = 0;
-	    char *com; 
-	    strcpy(ncomando,comando);
-	    
-	    palavra = strtok(comando," ");
-	       
-	    while( palavra !=  NULL ) {
-	      palavra  =  strtok(NULL," ");
-	      tamcm++;
-	    }
-	    
-	    lista_comando* lista;
-	    lista = (lista_comando*)malloc(tamcm*sizeof(lista_comando));
-	    if(lista == NULL){
-	        printf("Erro\n");
-	        exit(1);
-	    }
-
-	    char *pal;
-	    int n = 0; 
-	    pal = strtok(ncomando," ");
-
-	    while(pal !=  NULL) {
-			strcpy(lista[n].palavras,pal);
-			pal  =  strtok(NULL," ");
-			n++;
-	    }  
-
-		int k = 0;
-		int j = 0;
-		int r = 0;
-		int o = 0;
-		int confirma = -1;
-	    
-		for(i = 0; i < tamcm; i++){    
-	       k = strlen(lista[i].palavras);
-	       for(j = 0; j < k; j++){
-	           o = lista[i].palavras[j];
-	           if(o == 47) {//Verica argumento do comando
-	                r = strlen(lista[i].palavras);
-	                argumento = (char*)malloc(r*sizeof(char));
-	                strcpy(argumento,lista[i].palavras);
-	           }
-	           if(o == 60 || o == 62) {//Verifica redirecionamento
-	                //printf("Redirecionamento  =  %s \n",lista[i].palavras);
-	                r = strlen(lista[i].palavras);
-	                redirecionamento = (char*)malloc(r*sizeof(char));
-	                strcpy(redirecionamento,lista[i].palavras);
-	                confirma = 1; 
-	           }        
-	       }      
-	    }
-	   
-	    fcomando = (char*)malloc(strlen(lista[0].palavras)*sizeof(char));
-	    strcpy(fcomando,lista[0].palavras);
-	   	
-	    if(confirma == 1){
-	        k = strlen(lista[tamcm-1].palavras);
-	        
-	        arquivo = (char*)malloc (k*sizeof(char));
-	        strcpy(arquivo,lista[tamcm-1].palavras);
-	    }
-
-		/*if(!isRedirectCorrect(args, &argssize)){
+		char *comando;
+		args = tokeniza(entrada, &argssize);
+		int numDeArgumentos = verificaSimbolos(args, argssize);
+		
+		if(!isRedirectCorrect(args, &argssize)){
 			printf("Nao e possivel utilizar este simbolo para redirecionar a saida do programa.\n");
 			continue;
-		}*/
+		}
+		
+		
+		comando = getComando(args);
+		comandoComArgumentos = getArgumentos(args, argssize);
+		redirecionamento = getRedirecionamento(args, argssize);
+		arquivo = getArquivo(args, argssize);
+		//printf("%d\n", numDeArgumentos);
+		//printf("comando: %s\n", comando);
+		/*for(int i = 0; i< argssize  ;i++ ){
+			printf("argumento %d: %s\n",i, comandoComArgumentos[i] );
+		}/*
+		printf("redirecionamento: %s\n", redirecionamento);
+		printf("arquivo: %s\n", arquivo);*/
 
 		//cocatena o caminho /usr/bin/ ao comando digitado
 		char *caminho = (char*)malloc(1024*sizeof(char));
-		sprintf(caminho, "/bin/%s", fcomando);
-		args[0] = fcomando;
-		args[1] = argumento;
+		sprintf(caminho, "/bin/%s", comando);
+		
+		
+
 
 		//verifica se o comando e valido
 		if(!isCommand(caminho)){
-			printf("Comando %s nao valido\n", comando);
+			printf("Comando %s nao valido\n", entrada);
 		}
 		//se valido realiza o fork
 		else{
 			
+			
 			if(redirecionamento == NULL){
-				printf("nao redireciona\n");
+				
 				switch( pid = fork() ){
 			        case -1: 
 			            perror("Can't fork");
 			            exit(1);
 			        case 0:
-			        	close( pc[1]);
-	            		//close( cp[0]);
-	            		execvp(caminho, args);
+			        	execvp(caminho, comandoComArgumentos);
 	        			perror("No exec");
 	            		exit(1);
 
@@ -154,10 +100,12 @@ int main(int argc, char **argv[]){
 	            		waitpid(pid, &status, WCONTINUED);
 				}
 			}if(redirecionamento != NULL) {
-				
 				char *filepath = (char*)malloc(1024 * sizeof(char));
+				char *buffer = (char*)malloc(1024*sizeof(char));
+				if(strcmp(redirecionamento, "=>")==0){
+					
 
-				/* Create a child to run command. */
+				/* Create a child to run command. 
 			    switch( pid = fork() ){
 			        case -1: 
 			            perror("Can't fork");
@@ -167,17 +115,18 @@ int main(int argc, char **argv[]){
 			        	dup2(cp[1], 1);
 
 			        	
-			        	dup2(pc[0], 0);/* Make stdin come from read
-	                            end of pipe. */
+			        	close(pc[0]);/* Make stdin come from read
+	                            end of pipe. 
 			        	close( pc[1]);
-	            		//close( cp[0]);
-	            		execvp(caminho, args);
+	            		close( cp[0]);
+	            		execvp(caminho, comandoComArgumentos);
 	        			perror("No exec");
 	            		exit(1);
 
 	            	default:
-	            	
+	            		
 	            		waitpid(pid, &status, WCONTINUED);
+						close(cp[1]);
 				}
 				
 				
@@ -187,14 +136,16 @@ int main(int argc, char **argv[]){
 			            exit(1);
 			        case 0: 
 						//define o caminho para o arquivo de saida
-						
+						close(cp[1]);
+						close(pc[0]);
 						sprintf(filepath,"/home/igor/Documents/sistemas-operacionais/%s", arquivo);
 						
 						arq = fopen(arquivo,"w");
 						fclose(arq);
 			       		int filedesc = open(filepath, O_WRONLY);
-						while(read(cp[0], &ch, 1)==1) {
-
+						
+						while(read(cp[0], &ch, 1)>0) {
+							
 							write(filedesc, &ch, 1);
 						}
 			        	close( pc[1]);
@@ -202,7 +153,65 @@ int main(int argc, char **argv[]){
 	            		exit(1);
 	            	default:
 	            		waitpid(pid, &status, WCONTINUED);	
-				}   			
+				}   */
+				}else
+				if(strcmp(redirecionamento, "<=")==0){
+					switch(pid = fork()) {
+				        case -1: 
+				            perror("Can't fork");
+				            exit(1);
+				        case 0:
+				        	sprintf(filepath, "/home/igor/Documents/sistemas-operacionais/%s", arquivo);
+							if(!isCommand(filepath)){
+								printf("Comando %s nao valido\n", entrada);
+							}
+							int filedesc = open(filepath, O_RDONLY);
+							dup2(filedesc,0);
+							dup2(cp[1],1);
+							while(read(filedesc, &ch, 1)){
+								write(cp[1], &ch, 1);
+							}
+							close(cp[0]);
+							close(pc[0]);
+							close(pc[1]);
+
+							exit(1);
+							
+							
+		            	default:
+
+		            		waitpid(pid, &status, WCONTINUED);
+							close(cp[1]);
+					}
+
+					switch(pid = fork()) {
+				        case -1: 
+				            perror("Can't fork");
+				            exit(1);
+				        case 0:
+				        	
+							
+							dup2(cp[0],0);
+							
+							read(cp[0], buffer, 1024);
+							comandoComArgumentos[numDeArgumentos] = buffer;
+							comandoComArgumentos[numDeArgumentos+1] = NULL;
+							
+							execvp(caminho, comandoComArgumentos);
+							perror("No exec");
+							close(cp[0]);
+							close(pc[0]);
+							close(pc[1]);
+
+							exit(1);
+							
+							
+		            	default:
+
+		            		waitpid(pid, &status, WCONTINUED);
+					}
+
+				}
        		}
 		}		
 	}
