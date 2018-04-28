@@ -8,7 +8,6 @@ int main(int argc, char **argv[]){
 	char **redi;
 	int argssize;
 	int pid;
-    int pc[2]; /* Parent to child pipe */
     int cp[2]; /* Child to parent pipe */
     char ch;
     int incount = 0, outcount = 0;
@@ -17,20 +16,17 @@ int main(int argc, char **argv[]){
 	
 	FILE *arq;
 
-    /* Make pipes */
-    if( pipe(pc) < 0){
-        perror("Can't make pipe");
-        exit(1);
-    }
-    if( pipe(cp) < 0){
-        perror("Can't make pipe");
-        exit(1);
-    }
 
 	printf("Digite seu comando ou digite quit pra sair\n");
 
 	while(true){
-		 //imprime $ na tela
+
+ 	   	if( pipe(cp) < 0){
+			perror("Can't make pipe");
+			exit(1);
+    	}
+
+		//imprime $ na tela
 		printf(SHELLMARK);
 		//pega a entrada do terminal
 		fgets(entrada, 1024, stdin); //pega a entrada do terminal
@@ -61,13 +57,7 @@ int main(int argc, char **argv[]){
 		comandoComArgumentos = getArgumentos(args, argssize);
 		redirecionamento = getRedirecionamento(args, argssize);
 		arquivo = getArquivo(args, argssize);
-		//printf("%d\n", numDeArgumentos);
-		//printf("comando: %s\n", comando);
-		/*for(int i = 0; i< argssize  ;i++ ){
-			printf("argumento %d: %s\n",i, comandoComArgumentos[i] );
-		}/*
-		printf("redirecionamento: %s\n", redirecionamento);
-		printf("arquivo: %s\n", arquivo);*/
+		
 
 		//cocatena o caminho /usr/bin/ ao comando digitado
 		char *caminho = (char*)malloc(1024*sizeof(char));
@@ -115,9 +105,7 @@ int main(int argc, char **argv[]){
 			        	dup2(cp[1], 1);
 
 			        	
-			        	close(pc[0]);/* Make stdin come from read
-	                            end of pipe. */
-			        	close( pc[1]);
+			     
 	            		close( cp[0]);
 	            		execvp(caminho, comandoComArgumentos);
 	        			perror("No exec");
@@ -137,18 +125,15 @@ int main(int argc, char **argv[]){
 			        case 0: 
 						//define o caminho para o arquivo de saida
 						close(cp[1]);
-						close(pc[0]);
 						sprintf(filepath,"/home/igor/Documents/sistemas-operacionais/%s", arquivo);
 						
-						arq = fopen(arquivo,"w");
-						fclose(arq);
-			       		int filedesc = open(filepath, O_WRONLY);
+			       		int filedesc = open(filepath, O_CREAT | O_WRONLY);
 						
 						while(read(cp[0], &ch, 1)>0) {
 							
 							write(filedesc, &ch, 1);
 						}
-			        	close( pc[1]);
+			        	
 	            		close( cp[0]);
 	            		
 	            		exit(1);
@@ -156,8 +141,7 @@ int main(int argc, char **argv[]){
 	            		waitpid(pid, &status, WCONTINUED);
 	            		
 				}   
-				}else
-				if(strcmp(redirecionamento, "<=")==0){
+			}else if(strcmp(redirecionamento, "<=")==0){
 					switch(pid = fork()) {
 				        case -1: 
 				            perror("Can't fork");
@@ -174,8 +158,6 @@ int main(int argc, char **argv[]){
 								write(cp[1], &ch, 1);
 							}
 							close(cp[0]);
-							close(pc[0]);
-							close(pc[1]);
 
 							exit(1);
 							
@@ -202,10 +184,7 @@ int main(int argc, char **argv[]){
 							
 							execvp(caminho, comandoComArgumentos);
 							perror("No exec");
-							
-							close(pc[0]);
-							close(pc[1]);
-
+						
 							exit(1);
 							
 							

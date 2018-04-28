@@ -1,7 +1,0 @@
-funcShellso.c
-Makefile
-pipe.c
-shellso
-shellso.c
-shellso.h
-tp1.pdf

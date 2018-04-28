@@ -12,11 +12,9 @@ char** tokeniza(char *entrada, int *argssize){
 		token = strtok(NULL, " ");
 	}
 	
-	
-	strcpy(copiaSegura, entrada);
 	args = (char**)malloc(*argssize*sizeof(char*));
 	
-	token = strtok(copiaSegura, " ");
+	token = strtok(entrada, " ");
 	int i = 0;
 	while(token != NULL){
 		args[i] = (char*)malloc(strlen(token)*sizeof(char));
