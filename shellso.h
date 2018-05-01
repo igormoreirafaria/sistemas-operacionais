@@ -11,12 +11,9 @@
 #define SHELLMARK "$ "
 #define true 1
 #define false 0
-char** tokeniza(char *entrada, int *argssize);
-int verificaSimbolos(char **args, int argssize);
-int isCommand(char *caminho);
-int isRedirectCorrect(char **args, int *argssize);
-char* getComando(char **agrs);
-char** getArgumentos(char **args, int argssize);
-char* getRedirecionamento(char **args, int argssize);
-char* getArquivo(char **args, int argssize);
-char* getSimbolos(char **args, int argssize);
+
+void tokeniza(char*, char***, int*, char***, int*, int*);
+int isRedirectCorrect(char **, int *);
+char* getRedirecionamento(char **, int size);
+int isCommand(char *);
+char *getBackground(char **, int size);

@@ -1,59 +1,73 @@
 #include "shellso.h"
 
-char** tokeniza(char *entrada, int *argssize){
-	char**args;
-	char *copiaSegura = (char*)malloc(strlen(entrada)*sizeof(char));
-	strcpy(copiaSegura, entrada);
+void tokeniza( char *entrada, char ***args, int *argsSize, char ***args2, int *args2size, int *pipeFlags ){
 	char *token;
-	*argssize=0;
-	token = strtok(copiaSegura, " ");
-	while(token != NULL){
-		*argssize += 1;
-		token = strtok(NULL, " ");
+
+	char *copia = ( char* )calloc( strlen(entrada), sizeof(char) );
+	strcpy( copia, entrada );
+
+	int i = 0, j = 0;
+
+	int pipeFlag = 0;
+
+	token = strtok( copia, " ");
+	while( token != NULL ) {
+    	
+		if( !strcmp( token, "|" ) ){
+			pipeFlag = 1;
+			token = strtok( NULL, " " );
+			continue;	
+		} 
+
+
+    	if( pipeFlag == 0 ){
+    		i++;
+    	}else if( pipeFlag == 1){
+    		j++;
+    	}
+    	
+    	token = strtok( NULL, " " );
 	}
+
+	*argsSize = i;
+	(*args) = ( char** )calloc( (*argsSize) , sizeof(char*) );
 	
-	args = (char**)malloc(*argssize*sizeof(char*));
-	
-	token = strtok(entrada, " ");
-	int i = 0;
-	while(token != NULL){
-		args[i] = (char*)malloc(strlen(token)*sizeof(char));
-		strcpy(args[i], token);
-		token = strtok(NULL, " ");
-		i++;
+	if( pipeFlag == 1){
+		*args2size = j;
+		(*args2) = ( char** )calloc( (*args2size) , sizeof(char*) );	
 	}
-	
 
-	return args;
-}
+	pipeFlag = 0;
+	i = 0;
+	j = 0;
 
-int verificaSimbolos(char **args, int argssize) {
-	for(int i = 0; i < argssize; i++){
-		if(strcmp(args[i], "=>") == 0 || strcmp(args[i], "<=") == 0 || strcmp(args[i], "|") == 0 || strcmp(args[i], "&") == 0 ){
-			return i;
-		}
+	token = strtok( entrada, " ");
+	while( token != NULL ) {
+    	
+		if( !strcmp( token, "|" ) ){
+			pipeFlag = 1;
+			token = strtok( NULL, " " );
+			continue;	
+		} 
+
+
+    	if( pipeFlag == 0 ){
+    		
+    		(*args)[i] = ( char* )calloc( (strlen(token)) , sizeof(char) );
+    		strcpy( (*args)[i], token );
+    		i++;
+    	}else if( pipeFlag == 1){
+    		
+    		(*args2)[j] = ( char* )calloc( (strlen(token)) , sizeof(char) );
+    		strcpy( (*args2)[j], token );
+    		j++;
+    	}
+    	
+    	token = strtok( NULL, " " );
 	}
-	return 0;
-}
 
-char* getSimbolos(char **args, int argssize) {
-	for(int i = 0; i < argssize; i++){
-		if(strcmp(args[i], "=>") == 0 || strcmp(args[i], "<=") == 0 || strcmp(args[i], "|") == 0 || strcmp(args[i], "&") == 0 ){
-			return args[i];
-		}
-	}
-	return NULL;
+	*pipeFlags = pipeFlag;
 }
-
-int isCommand(char *caminho){
-	FILE *f;
-	if(fopen(caminho, "r")){
-		return true;
-	}else{
-		return false;
-	}
-}
-
 
 int isRedirectCorrect(char **args, int *argssize){
 	for (int i = 0; i < *argssize; i++){
@@ -64,53 +78,30 @@ int isRedirectCorrect(char **args, int *argssize){
 	return true;
 }
 
-char* getComando(char** args){
-	return args[0];
-}
-
-char ** getArgumentos(char **args, int argssize){
-	int simboloIndex = verificaSimbolos(args, argssize);
-	if(simboloIndex != 0){
-		if(strcmp(args[simboloIndex],"=>")){
-			char **argumentos = (char**)malloc(simboloIndex * sizeof(char*));
-			for(int i = 0; i < simboloIndex; i++){
-				argumentos[i] = args[i];
-			}
-			return argumentos;	
-		}else
-		if(strcmp(args[simboloIndex],"<=")){
-			char **argumentos = (char**)malloc(simboloIndex+1 * sizeof(char*));
-			for(int i = 0; i < simboloIndex; i++){
-				argumentos[i] = args[i];
-			}
-			argumentos[simboloIndex+1] = NULL;
-			return argumentos;
-		}
-	}else{
-		char **argumentos = (char**)malloc(argssize * sizeof(char*));
-		for(int i = 0; i< argssize; i++){
-			argumentos[i] = args[i];
-		}
-		return argumentos;
-	}
-
-	
-}
-
 char* getRedirecionamento(char **args, int argssize){
 	for(int i = 0; i < argssize; i++){
-		if(strcmp(args[i], "=>") == 0 || strcmp(args[i], "<=") == 0 || strcmp(args[i], "|") == 0 || strcmp(args[i], "&") == 0 ){
+		if(strcmp(args[i], "=>") == 0 || strcmp(args[i], "<=") == 0 ){
 			return args[i];
 		}
 	}
 	return NULL;
 }
 
-char* getArquivo(char **args, int argssize){
+char* getBackground(char **args, int argssize){
 	for(int i = 0; i < argssize; i++){
-		if(strcmp(args[i], "=>") == 0 || strcmp(args[i], "<=") == 0 || strcmp(args[i], "|") == 0 || strcmp(args[i], "&") == 0 ){
-			return args[i+1];
+		if(strcmp(args[i], "&") == 0 ){
+			return args[i];
 		}
 	}
 	return NULL;
+}
+
+int isCommand(char *caminho){
+	if( access( caminho, F_OK ) != -1 ) {
+    	// file exists
+		return true;
+	} else {
+	    // file doesn't exist
+		return false;
+	}
 }

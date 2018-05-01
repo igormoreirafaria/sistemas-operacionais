@@ -1,5 +1,5 @@
 target: funcShellso.c shellso.c
-	gcc funcShellso.c shellso.c -o shellso
+	gcc funcShellso.c shellso.c -o shellso 
 
 clean: 
 	rm -rf shellso
