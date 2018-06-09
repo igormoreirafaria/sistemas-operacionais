@@ -73,14 +73,19 @@ int main(int argc, char const *argv[]){
 	Fila *mem_principal = criafila(&tamanhoDaMemoriaFisica);
 	
 	int index;
-	
+	int vilela = 0;
+	int flagSecChance=0;
 	int cont = 0;
 	unsigned x;
 	int flagAcerto = 0;
 	if( !strcmp( algoritmo, "lru" ) ){
+	}else if( !strcmp( algoritmo, "nru" ) ){
+
+	}else if( !strcmp( algoritmo, "segunda_chance" ) ){
 		while(!feof(file)){
 			fscanf(file,"%x %c", &addr, &rw);
 			//printf("%x %c\n", addr, rw);
+			
 			addr_shiftado = addr >> s;
 			index = addr_shiftado%memoriaVirtual->tamanho;
 			flagAcerto = 0;
@@ -98,6 +103,12 @@ int main(int argc, char const *argv[]){
 					e->pagina_referenciada = i->offset;
 					e->ultimo_acesso = tempo;
 					e->pagina_alterada = 0;
+					if(rw == 'R' || rw == 'W'){
+						e->bit_R = 1;
+					}
+					if(rw == 'W'){
+						e->pagina_alterada = 1;
+					}
 					e->presente_ausente = 1;
 
 					memoriaVirtual->items[index]->next = novo_item(&addr_shiftado, e);
@@ -115,15 +126,20 @@ int main(int argc, char const *argv[]){
 					if(p->next->value->pagina_referenciada == addr_shiftado &&
 				 	 p->next->value->presente_ausente == 0 ){
 					 	p->next->value->ultimo_acesso = tempo;
-						p->next->value->pagina_alterada = 1;
+						if(rw == 'R' || rw == 'W'){
+							p->next->value->bit_R = 1;
+						}
+						if(rw == 'W'){
+							p->next->value->pagina_alterada = 1;
+						}
 						p->next->value->presente_ausente = 1;
 						int indexx = mem_principal->items[mem_principal->primeiro].offset;
 						indexx = indexx%memoriaVirtual->tamanho;
-						for( ; p->next != NULL ; p = p->next){
-							if(p->next->value->pagina_referenciada == addr_shiftado){
-								p->next->value->ultimo_acesso = tempo;
-								p->next->value->pagina_alterada = 1;
-								p->next->value->presente_ausente = 0;
+						Item *pp = memoriaVirtual->items[indexx];
+						for( ; pp->next != NULL ; pp = pp->next){
+							if(pp->next->value->pagina_referenciada == mem_principal->items[mem_principal->primeiro].offset){
+								pp->next->value->ultimo_acesso = tempo;
+								pp->next->value->presente_ausente = 0;
 							}
 						}
 
@@ -131,7 +147,7 @@ int main(int argc, char const *argv[]){
 						numeroDeFalhas++;
 						numeroDePaginasSujas++;
 						Item_fila *i = novo_item_fila();
-						i->offset = addr;
+						i->offset = addr_shiftado;
 						insere(mem_principal, i);
 					}else{
 						continue;
@@ -141,13 +157,30 @@ int main(int argc, char const *argv[]){
 				if(flagAcerto != 1){
 					if (mem_principal->cont == mem_principal->tamanho){
 						
-						int indexx = mem_principal->items[mem_principal->primeiro].offset;
-						indexx = indexx%memoriaVirtual->tamanho;
-						for( ; p->next != NULL ; p = p->next){
-							if(p->next->value->pagina_referenciada == addr_shiftado){
-								p->next->value->ultimo_acesso = tempo;
-								p->next->value->pagina_alterada = 1;
-								p->next->value->presente_ausente = 0;
+						while(flagSecChance != 1){
+							int indexx = mem_principal->items[mem_principal->primeiro].offset;
+							indexx = indexx%memoriaVirtual->tamanho;
+							Item *secp = memoriaVirtual->items[indexx];
+							for( ; secp->next != NULL ; secp = secp->next){
+								printf("virtual => %x\n", secp->next->value->pagina_referenciada);
+								printf("fisica => %x\n", mem_principal->items[mem_principal->primeiro].offset);
+								if(secp->next->value->pagina_referenciada == mem_principal->items[mem_principal->primeiro].offset){
+								 	printf("XABLAU\n");
+								 	getchar();
+									if(secp->next->value->bit_R == 1){
+										secp->next->value->bit_R = 0;
+										secp->next->value->ultimo_acesso = tempo;
+										Item_fila *j = novo_item_fila();
+										j->offset = mem_principal->items[mem_principal->primeiro].offset;
+										desenfilera(mem_principal);
+										insere(mem_principal, j);
+									}else 
+									if( secp->next->value->bit_R == 0 ){
+										flagSecChance = 1;
+										secp->next->value->ultimo_acesso = tempo;
+										secp->next->value->presente_ausente = 0;
+									}
+								}
 							}
 						}
 
@@ -155,7 +188,7 @@ int main(int argc, char const *argv[]){
 					}
 					numeroDeFalhas++;
 					Item_fila *i = novo_item_fila();
-					i->offset = addr;
+					i->offset = addr_shiftado;
 					insere(mem_principal, i);
 				
 					Entrada *e = (Entrada*)calloc(1, sizeof(Entrada));
@@ -163,6 +196,12 @@ int main(int argc, char const *argv[]){
 					e->pagina_referenciada = i->offset;
 					e->ultimo_acesso = tempo;
 					e->pagina_alterada = 0;
+					if(rw == 'R' || rw == 'W'){
+						e->bit_R = 1;
+					}
+					if(rw == 'W'){
+						e->pagina_alterada = 1;
+					}
 					e->presente_ausente = 1;
 
 					p->next = novo_item(&addr_shiftado, e);
@@ -171,12 +210,10 @@ int main(int argc, char const *argv[]){
 			}
 			printf("Acertos => %d\n", numeroDeAcertos);
 			printf("Falhas => %d\n\n", numeroDeFalhas);
+			// printf("cont => %d\n", mem_principal->cont);
 			//printf("%x\n", page);
 			tempo++;
 		}
-	}else if( !strcmp( algoritmo, "nru" ) ){
-
-	}else if( !strcmp( algoritmo, "segunda_chance" ) ){
 
 	}
 

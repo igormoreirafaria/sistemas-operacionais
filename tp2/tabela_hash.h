@@ -1,6 +1,7 @@
 typedef struct{
 	unsigned pagina_referenciada; //offset
 	int ultimo_acesso;
+    int bit_R;
 	int pagina_alterada;
 	int presente_ausente; //presente = 1 ausente = 0
 }Entrada;
