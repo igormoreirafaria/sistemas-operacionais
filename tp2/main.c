@@ -16,7 +16,7 @@ int main(int argc, char const *argv[]){
 	// for (int i = 1; i < argc; ++i){
 	// 	printf("%s\n", argv[i]);
 	// }
-	
+
 //=========================tratamento da entrada============================//
 	char *algoritmo = ( char* )calloc( strlen(argv[1]),  sizeof( char* ) );
 	strcpy( algoritmo, argv[1] );
@@ -66,14 +66,14 @@ int main(int argc, char const *argv[]){
 	unsigned addr;
 	char rw;
 	FILE *file = fopen(caminhoDoArquivo, "r");
-	
+
 	int num_de_paginas = tamanhoDaMemoriaFisica/tamanhoDePagina;
 	Tabela_hash *memoriaVirtual = nova_tabela_hash(&num_de_paginas);
-	
+
 	Fila *mem_principal = criafila(&tamanhoDaMemoriaFisica);
-	
+
 	int index;
-	
+
 	int cont = 0;
 	unsigned x;
 	int flagAcerto = 0;
@@ -86,23 +86,23 @@ int main(int argc, char const *argv[]){
 			flagAcerto = 0;
 
 			if(memoriaVirtual->items[index]->next == NULL){
-					
+
 					numeroDeFalhas++;
-					
+
 					Item_fila *i = novo_item_fila();
 					i->offset = addr_shiftado;
 					insere(mem_principal, i);
-				
+
 					Entrada *e = (Entrada*)calloc(1, sizeof(Entrada));
-					
+
 					e->pagina_referenciada = i->offset;
 					e->ultimo_acesso = tempo;
 					e->pagina_alterada = 0;
 					e->presente_ausente = 1;
 
 					memoriaVirtual->items[index]->next = novo_item(&addr_shiftado, e);
-					
-				
+
+
 			}else{
 				Item *p = memoriaVirtual->items[index];
 				for( ; p->next != NULL ; p = p->next){
@@ -110,8 +110,8 @@ int main(int argc, char const *argv[]){
 					 p->next->value->presente_ausente == 1 ){
 					 	flagAcerto = 1;
 						numeroDeAcertos++;
-						
-					}else 
+
+					}else
 					if(p->next->value->pagina_referenciada == addr_shiftado &&
 				 	 p->next->value->presente_ausente == 0 ){
 					 	p->next->value->ultimo_acesso = tempo;
@@ -140,7 +140,7 @@ int main(int argc, char const *argv[]){
 
 				if(flagAcerto != 1){
 					if (mem_principal->cont == mem_principal->tamanho){
-						
+
 						int indexx = mem_principal->items[mem_principal->primeiro].offset;
 						indexx = indexx%memoriaVirtual->tamanho;
 						for( ; p->next != NULL ; p = p->next){
@@ -157,9 +157,9 @@ int main(int argc, char const *argv[]){
 					Item_fila *i = novo_item_fila();
 					i->offset = addr;
 					insere(mem_principal, i);
-				
+
 					Entrada *e = (Entrada*)calloc(1, sizeof(Entrada));
-					
+
 					e->pagina_referenciada = i->offset;
 					e->ultimo_acesso = tempo;
 					e->pagina_alterada = 0;
@@ -169,11 +169,11 @@ int main(int argc, char const *argv[]){
 
 				}
 			}
-			printf("Acertos => %d\n", numeroDeAcertos);
-			printf("Falhas => %d\n\n", numeroDeFalhas);
+			//printf("Acertos => %d\n", numeroDeAcertos);
+			//printf("Falhas => %d\n\n", numeroDeFalhas);
 			//printf("%x\n", page);
 			tempo++;
-		}
+			}
 	}else if( !strcmp( algoritmo, "nru" ) ){
 
 	}else if( !strcmp( algoritmo, "segunda_chance" ) ){
