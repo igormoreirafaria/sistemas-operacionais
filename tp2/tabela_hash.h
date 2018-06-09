@@ -1,13 +1,14 @@
 typedef struct{
-	unsigned *pagina_referenciada;
-	int *ultimo_acesso;
-	int *pagina_alterada;
+	unsigned pagina_referenciada; //offset
+	int ultimo_acesso;
+	int pagina_alterada;
+	int presente_ausente; //presente = 1 ausente = 0
 }Entrada;
 
-typedef struct {
-    unsigned *key;
+typedef struct item{
+    int *key;
     Entrada* value;
-    struct Item *next;
+    struct item  *next;
 }Item;
 
 typedef struct {
