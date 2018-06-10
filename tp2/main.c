@@ -70,7 +70,7 @@ int main(int argc, char const *argv[]){
 	int num_de_paginas = tamanhoDaMemoriaFisica/tamanhoDePagina;
 	Tabela_hash *memoriaVirtual = nova_tabela_hash(&num_de_paginas);
 	
-	Fila *mem_principal = criafila(&tamanhoDaMemoriaFisica);
+	Fila *mem_principal = criafila(&num_de_paginas);
 	
 	int index;
 	int vilela = 0;
@@ -89,7 +89,6 @@ int main(int argc, char const *argv[]){
 			addr_shiftado = addr >> s;
 			index = addr_shiftado%memoriaVirtual->tamanho;
 			flagAcerto = 0;
-
 			if(memoriaVirtual->items[index]->next == NULL){
 					
 					numeroDeFalhas++;
@@ -135,11 +134,11 @@ int main(int argc, char const *argv[]){
 							numeroDePaginasSujas++;
 						}
 						p->next->value->presente_ausente = 1;
-						int indexx = mem_principal->items[mem_principal->primeiro].offset;
+						int indexx = mem_principal->items[mem_principal->primeiro+1].offset >> s;
 						indexx = indexx%memoriaVirtual->tamanho;
 						Item *pp = memoriaVirtual->items[indexx];
 						for( ; pp->next != NULL ; pp = pp->next){
-							if(pp->next->value->pagina_referenciada == mem_principal->items[mem_principal->primeiro].offset){
+							if(pp->next->value->pagina_referenciada == mem_principal->items[mem_principal->primeiro+1].offset){
 								pp->next->value->ultimo_acesso = tempo;
 								pp->next->value->presente_ausente = 0;
 							}
@@ -159,22 +158,26 @@ int main(int argc, char const *argv[]){
 				if(flagAcerto != 1){
 					
 					if (mem_principal->cont == mem_principal->tamanho){
+						// printf("XAXAXA\n");
+						// getchar();
 						
+						flagSecChance = 0;
 						while(flagSecChance != 1){
-							int indexx = mem_principal->items[mem_principal->primeiro].offset;
+							
+							int indexx = mem_principal->items[mem_principal->primeiro+1].offset >> s;
 							indexx = indexx%memoriaVirtual->tamanho;
 							Item *secp = memoriaVirtual->items[indexx];
 							for( ; secp->next != NULL ; secp = secp->next){
-								printf("virtual => %x\n", secp->next->value->pagina_referenciada);
-								printf("fisica => %x\n", mem_principal->items[mem_principal->primeiro].offset);
-								if(secp->next->value->pagina_referenciada == mem_principal->items[mem_principal->primeiro].offset){
-								 	printf("XABLAU\n");
-								 	getchar();	 	
+								// printf("virtual => %x\n", secp->next->value->pagina_referenciada);
+								// printf("fisica => %x\n", mem_principal->items[mem_principal->primeiro+1].offset);
+								if(secp->next->value->pagina_referenciada == mem_principal->items[mem_principal->primeiro+1].offset){
+								 	// printf("XABLAU\n");
+								 	// getchar();	 	
 									if(secp->next->value->bit_R == 1){
 										secp->next->value->bit_R = 0;
 										secp->next->value->ultimo_acesso = tempo;
 										Item_fila *j = novo_item_fila();
-										j->offset = mem_principal->items[mem_principal->primeiro].offset;
+										j->offset = mem_principal->items[mem_principal->primeiro+1].offset;
 										desenfilera(mem_principal);
 										insere(mem_principal, j);
 									}else 
@@ -182,40 +185,42 @@ int main(int argc, char const *argv[]){
 										flagSecChance = 1;
 										secp->next->value->ultimo_acesso = tempo;
 										secp->next->value->presente_ausente = 0;
+										desenfilera(mem_principal);
+										
+										numeroDeFalhas++;
+										Item_fila *i = novo_item_fila();
+										i->offset = addr;
+										insere(mem_principal, i);
+									
+										Entrada *e = (Entrada*)calloc(1, sizeof(Entrada));
+										
+										e->pagina_referenciada = i->offset;
+										e->ultimo_acesso = tempo;
+										e->pagina_alterada = 0;
+										if(rw == 'R' || rw == 'W'){
+											e->bit_R = 1;
+										}
+										if(rw == 'W'){
+											e->pagina_alterada = 1;
+											numeroDePaginasSujas++;
+										}
+										e->presente_ausente = 1;
+
+										p->next = novo_item(&addr_shiftado, e);
 									}
 								}
 							}
 						}
-						desenfilera(mem_principal);
 					}
-					numeroDeFalhas++;
-					Item_fila *i = novo_item_fila();
-					i->offset = addr;
-					insere(mem_principal, i);
-				
-					Entrada *e = (Entrada*)calloc(1, sizeof(Entrada));
-					
-					e->pagina_referenciada = i->offset;
-					e->ultimo_acesso = tempo;
-					e->pagina_alterada = 0;
-					if(rw == 'R' || rw == 'W'){
-						e->bit_R = 1;
-					}
-					if(rw == 'W'){
-						e->pagina_alterada = 1;
-						numeroDePaginasSujas++;
-					}
-					e->presente_ausente = 1;
-
-					p->next = novo_item(&addr_shiftado, e);
 
 				}
 			}
-			printf("Acertos => %d\n", numeroDeAcertos);
-			printf("Falhas => %d\n\n", numeroDeFalhas);
+			// printf("Acertos => %d\n", numeroDeAcertos);
+			// printf("Falhas => %d\n\n", numeroDeFalhas);
 			// printf("cont => %d\n", mem_principal->cont);
 			//printf("%x\n", page);
 			tempo++;
+			printf("%d\n", tempo);
 		}
 
 	}
