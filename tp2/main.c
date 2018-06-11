@@ -125,6 +125,7 @@ int main(int argc, char const *argv[]){
 					}else 
 					if(p->next->value->pagina_referenciada == addr &&
 				 	 p->next->value->presente_ausente == 0 ){
+				 	 	flagAcerto = 1;
 					 	p->next->value->ultimo_acesso = tempo;
 						if(rw == 'R' || rw == 'W'){
 							p->next->value->bit_R = 1;
@@ -134,22 +135,40 @@ int main(int argc, char const *argv[]){
 							numeroDePaginasSujas++;
 						}
 						p->next->value->presente_ausente = 1;
-						int indexx = mem_principal->items[mem_principal->primeiro+1].offset >> s;
-						indexx = indexx%memoriaVirtual->tamanho;
-						Item *pp = memoriaVirtual->items[indexx];
-						for( ; pp->next != NULL ; pp = pp->next){
-							if(pp->next->value->pagina_referenciada == mem_principal->items[mem_principal->primeiro+1].offset){
-								pp->next->value->ultimo_acesso = tempo;
-								pp->next->value->presente_ausente = 0;
+						flagSecChance = 0;
+						while(flagSecChance != 1){
+							
+							int indexx = mem_principal->items[mem_principal->primeiro+1].offset >> s;
+							indexx = indexx%memoriaVirtual->tamanho;
+							Item *secp = memoriaVirtual->items[indexx];
+							for( ; secp->next != NULL ; secp = secp->next){
+								// printf("virtual => %x\n", secp->next->value->pagina_referenciada);
+								// printf("fisica => %x\n", mem_principal->items[mem_principal->primeiro+1].offset);
+								if(secp->next->value->pagina_referenciada == mem_principal->items[mem_principal->primeiro+1].offset){
+								 	// printf("XABLAU\n");
+								 	// getchar();	 	
+									if(secp->next->value->bit_R == 1){
+										secp->next->value->bit_R = 0;
+										secp->next->value->ultimo_acesso = tempo;
+										Item_fila *j = novo_item_fila();
+										j->offset = mem_principal->items[mem_principal->primeiro+1].offset;
+										desenfilera(mem_principal);
+										insere(mem_principal, j);
+									}else 
+									if( secp->next->value->bit_R == 0 ){
+										flagSecChance = 1;
+										secp->next->value->ultimo_acesso = tempo;
+										secp->next->value->presente_ausente = 0;
+										desenfilera(mem_principal);
+										
+										numeroDeFalhas++;
+										Item_fila *i = novo_item_fila();
+										i->offset = addr;
+										insere(mem_principal, i);
+									}
+								}
 							}
 						}
-
-						desenfilera(mem_principal);
-						numeroDeFalhas++;
-						numeroDePaginasSujas++;
-						Item_fila *i = novo_item_fila();
-						i->offset = addr;
-						insere(mem_principal, i);
 					}else{
 						continue;
 					}
@@ -220,7 +239,7 @@ int main(int argc, char const *argv[]){
 			// printf("cont => %d\n", mem_principal->cont);
 			//printf("%x\n", page);
 			tempo++;
-			printf("%d\n", tempo);
+			// printf("\n%d\n", tempo);
 		}
 
 	}
