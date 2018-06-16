@@ -68,12 +68,12 @@ int main(int argc, char const *argv[]){
 	FILE *file = fopen(caminhoDoArquivo, "r");
 	
 	int num_de_paginas = tamanhoDaMemoriaFisica/tamanhoDePagina;
-	Tabela_hash *memoriaVirtual = nova_tabela_hash(&num_de_paginas);
 	
 	Fila *mem_principal = criafila(&num_de_paginas);
 	
+	Tabela_hash *memoriaVirtual = nova_tabela_hash(&num_de_paginas);
+	
 	int index;
-	int vilela = 0;
 	int flagSecChance=0;
 	int cont = 0;
 	unsigned x;
@@ -89,8 +89,8 @@ int main(int argc, char const *argv[]){
 			addr_shiftado = addr >> s;
 			index = addr_shiftado%memoriaVirtual->tamanho;
 			flagAcerto = 0;
+
 			if(memoriaVirtual->items[index]->next == NULL){
-					
 					numeroDeFalhas++;
 					
 					Item_fila *i = novo_item_fila();
@@ -115,6 +115,7 @@ int main(int argc, char const *argv[]){
 					
 				
 			}else{
+
 				Item *p = memoriaVirtual->items[index];
 				for( ; p->next != NULL ; p = p->next){
 					if(p->next->value->pagina_referenciada == addr &&
@@ -174,11 +175,12 @@ int main(int argc, char const *argv[]){
 					}
 				}
 
+				
 				if(flagAcerto != 1){
-					
+
 					if (mem_principal->cont == mem_principal->tamanho){
-						// printf("XAXAXA\n");
-						// getchar();
+						printf("XAXAXA\n");
+						getchar();
 						
 						flagSecChance = 0;
 						while(flagSecChance != 1){
@@ -230,8 +232,31 @@ int main(int argc, char const *argv[]){
 								}
 							}
 						}
-					}
+					}else{
 
+						numeroDeFalhas++;
+						Item_fila *i = novo_item_fila();
+						i->offset = addr;
+						insere(mem_principal, i);
+					
+						Entrada *e = (Entrada*)calloc(1, sizeof(Entrada));
+						
+						e->pagina_referenciada = i->offset;
+						e->ultimo_acesso = tempo;
+						e->pagina_alterada = 0;
+						if(rw == 'R' || rw == 'W'){
+							e->bit_R = 1;
+						}
+						if(rw == 'W'){
+							e->pagina_alterada = 1;
+							numeroDePaginasSujas++;
+						}
+						e->presente_ausente = 1;
+						
+							
+						p->next = novo_item(&addr_shiftado, e);
+						
+					}
 				}
 			}
 			// printf("Acertos => %d\n", numeroDeAcertos);

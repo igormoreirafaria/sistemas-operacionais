@@ -15,7 +15,7 @@ Tabela_hash* nova_tabela_hash(int *tamanho) {
 
     th->tamanho = *tamanho;
     th->cont = 0;
-    th->items = calloc(th->tamanho, sizeof(Item*));
+    th->items = calloc(th->tamanho , sizeof(Item*));
     for(int i = 0; i < *tamanho ; i++){
     	th->items[i] = (Item*)calloc(1, sizeof(Item));
     }
