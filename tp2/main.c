@@ -81,6 +81,7 @@ int main(int argc, char const *argv[]){
 	int minimo = 999999999;
 	int trocaIndex;
 	int trocaAddr;
+	int nruFlag = 0;
 	if( !strcmp( algoritmo, "lru" ) ){
 
 		while(!feof(file)){
@@ -92,6 +93,7 @@ int main(int argc, char const *argv[]){
 			addr_shiftado = addr >> s;
 			index = addr_shiftado%memoriaVirtual->tamanho;
 			flagAcerto = 0;
+			nruFlag = 0;
 			if(mem_principal->cont != mem_principal->tamanho){
 				if(memoriaVirtual->items[index]->next == NULL){
 					numeroDeFalhas++;
@@ -135,7 +137,6 @@ int main(int argc, char const *argv[]){
 								numeroDePaginasSujas++;
 							}
 							p->next->value->presente_ausente = 1;
-							// lru code
 						}else{
 							continue;
 						}
@@ -251,14 +252,16 @@ int main(int argc, char const *argv[]){
 	}else if( !strcmp( algoritmo, "nru" ) ){
 
 		while(!feof(file)){
+			
 			fscanf(file,"%x %c", &addr, &rw);
+			
 			//printf("%x %c\n", addr, rw);
 			
 			addr_shiftado = addr >> s;
 			index = addr_shiftado%memoriaVirtual->tamanho;
 			flagAcerto = 0;
-
-			if(memoriaVirtual->items[index]->next == NULL){
+			if(mem_principal->cont != mem_principal->tamanho){
+				if(memoriaVirtual->items[index]->next == NULL){
 					numeroDeFalhas++;
 					
 					Item_fila *i = novo_item_fila();
@@ -280,38 +283,31 @@ int main(int argc, char const *argv[]){
 					e->presente_ausente = 1;
 
 					memoriaVirtual->items[index]->next = novo_item(&addr_shiftado, e);
-			}else{
-				Item *p = memoriaVirtual->items[index];
-				for( ; p->next != NULL ; p = p->next){
-					if(p->next->value->pagina_referenciada == addr &&
-					 p->next->value->presente_ausente == 1 ){
-					 	flagAcerto = 1;
-						numeroDeAcertos++;
-						
-					}else 
-					if(p->next->value->pagina_referenciada == addr &&
-				 	 p->next->value->presente_ausente == 0 ){
-				 	 	flagAcerto = 1;
-					 	p->next->value->ultimo_acesso = tempo;
-						if(rw == 'R' || rw == 'W'){
-							p->next->value->bit_R = 1;
+				}else{
+					Item *p = memoriaVirtual->items[index];
+					for( ; p->next != NULL ; p = p->next){
+						if(p->next->value->pagina_referenciada == addr &&
+						 p->next->value->presente_ausente == 1 ){
+						 	flagAcerto = 1;
+							numeroDeAcertos++;						
+						}else 
+						if(p->next->value->pagina_referenciada == addr &&
+					 	 p->next->value->presente_ausente == 0 ){
+					 	 	flagAcerto = 1;
+						 	p->next->value->ultimo_acesso = tempo;
+							if(rw == 'R' || rw == 'W'){
+								p->next->value->bit_R = 1;
+							}
+							if(rw == 'W'){
+								p->next->value->pagina_alterada = 1;
+								numeroDePaginasSujas++;
+							}
+							p->next->value->presente_ausente = 1;
+						}else{
+							continue;
 						}
-						if(rw == 'W'){
-							p->next->value->pagina_alterada = 1;
-							numeroDePaginasSujas++;
-						}
-						p->next->value->presente_ausente = 1;
-						// nru code
-					}else{
-						continue;
 					}
-				}
-				if(flagAcerto != 1){
-
-					if (mem_principal->cont == mem_principal->tamanho){
-						//nru code
-					}else{
-
+					if(flagAcerto != 1){
 						numeroDeFalhas++;
 						Item_fila *i = novo_item_fila();
 						i->offset = addr;
@@ -336,7 +332,99 @@ int main(int argc, char const *argv[]){
 						memoriaVirtual->cont++;
 					}
 				}
+			}else 
+			if(mem_principal->cont == mem_principal->tamanho){
+				Item *p = memoriaVirtual->items[index];
+				for( ; p->next != NULL ; p = p->next){
+					if(p->next->value->pagina_referenciada == addr &&
+					 p->next->value->presente_ausente == 1 ){
+					 	flagAcerto = 1;
+						numeroDeAcertos++;						
+					}else 
+					if(p->next->value->pagina_referenciada == addr &&
+				 	 p->next->value->presente_ausente == 0 ){
+				 	 	flagAcerto = 1;
+					 	p->next->value->ultimo_acesso = tempo;
+						if(rw == 'R' || rw == 'W'){
+							p->next->value->bit_R = 1;
+						}
+						if(rw == 'W'){
+							p->next->value->pagina_alterada = 1;
+							numeroDePaginasSujas++;
+						}
+						p->next->value->presente_ausente = 1;
+						numeroDeFalhas++;
+						for(int i = 0; i < memoriaVirtual->tamanho;i++){
+							if(memoriaVirtual->items[i]->next != NULL){
+								Item *p1 = memoriaVirtual->items[i];
+								for( ; p1->next != NULL ; p1 = p1->next){
+									if(minimo > p1->next->value->ultimo_acesso){
+										trocaAddr = p1->next->value->pagina_referenciada;
+									}
+								}
+							}
+						}
+
+						for(int i = 0 ; i < mem_principal->tamanho ; i++){
+							if(mem_principal->items[i].offset == trocaAddr){
+								mem_principal->items[i].offset = addr;
+								break;
+							}
+						}
+					}else{
+						continue;
+					}
+				}
+
+				if(flagAcerto != 1){
+
+					numeroDeFalhas++;
+					for(int i = 0; i < memoriaVirtual->tamanho;i++){
+						if(memoriaVirtual->items[i]->next != NULL){
+							Item *p1 = memoriaVirtual->items[i];
+							for( ; p1->next != NULL ; p1 = p1->next){
+								if(nruFlag == 0 && minimo > p1->next->value->ultimo_acesso && 
+									p1->next->value->bit_R == 0 && p1->next->value->pagina_alterada == 0){
+									trocaAddr = p1->next->value->pagina_referenciada;
+									nruFlag = 1;
+								}else if (nruFlag == 0 && minimo > p1->next->value->ultimo_acesso && 
+									p1->next->value->bit_R == 0 && p1->next->value->pagina_alterada == 1){
+									trocaAddr = p1->next->value->pagina_referenciada;
+								}else if (nruFlag == 0 && minimo > p1->next->value->ultimo_acesso && 
+									p1->next->value->bit_R == 1 && p1->next->value->pagina_alterada == 0){
+									trocaAddr = p1->next->value->pagina_referenciada;
+								}else if (nruFlag == 0 && minimo > p1->next->value->ultimo_acesso && 
+									p1->next->value->bit_R == 1 && p1->next->value->pagina_alterada == 1){
+									trocaAddr = p1->next->value->pagina_referenciada;
+								}
+							}
+						}
+					}
+
+					for(int i = 0 ; i < mem_principal->tamanho ; i++){
+						if(mem_principal->items[i].offset == trocaAddr){
+							mem_principal->items[i].offset = addr;
+							break;
+						}
+					}
+					Entrada *e = (Entrada*)calloc(1, sizeof(Entrada));
+						
+					e->pagina_referenciada = addr;
+					e->ultimo_acesso = tempo;
+					e->pagina_alterada = 0;
+					if(rw == 'R' || rw == 'W'){
+						e->bit_R = 1;
+					}
+					if(rw == 'W'){
+						e->pagina_alterada = 1;
+						numeroDePaginasSujas++;
+					}
+					e->presente_ausente = 1;
+
+					p->next = novo_item(&addr_shiftado, e);
+				}
 			}
+			tempo++;
 		}
 
 	}else if( !strcmp( algoritmo, "segunda_chance" ) ){
