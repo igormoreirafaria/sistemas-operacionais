@@ -85,8 +85,8 @@ int main(int argc, char const *argv[]){
 
 		while(!feof(file)){
 			
-			getchar();
 			fscanf(file,"%x %c", &addr, &rw);
+			
 			//printf("%x %c\n", addr, rw);
 			
 			addr_shiftado = addr >> s;
@@ -140,14 +140,98 @@ int main(int argc, char const *argv[]){
 							continue;
 						}
 					}
-					numeroDeFalhas++;
-					Item_fila *i = novo_item_fila();
-					i->offset = addr;
-					insere(mem_principal, i);
-				
-					Entrada *e = (Entrada*)calloc(1, sizeof(Entrada));
+					if(flagAcerto != 1){
+						numeroDeFalhas++;
+						Item_fila *i = novo_item_fila();
+						i->offset = addr;
+						insere(mem_principal, i);
 					
-					e->pagina_referenciada = i->offset;
+						Entrada *e = (Entrada*)calloc(1, sizeof(Entrada));
+						
+						e->pagina_referenciada = i->offset;
+						e->ultimo_acesso = tempo;
+						e->pagina_alterada = 0;
+						if(rw == 'R' || rw == 'W'){
+							e->bit_R = 1;
+						}
+						if(rw == 'W'){
+							e->pagina_alterada = 1;
+							numeroDePaginasSujas++;
+						}
+						e->presente_ausente = 1;
+						
+							
+						p->next = novo_item(&addr_shiftado, e);
+						memoriaVirtual->cont++;
+					}
+				}
+			}else 
+			if(mem_principal->cont == mem_principal->tamanho){
+				Item *p = memoriaVirtual->items[index];
+				for( ; p->next != NULL ; p = p->next){
+					if(p->next->value->pagina_referenciada == addr &&
+					 p->next->value->presente_ausente == 1 ){
+					 	flagAcerto = 1;
+						numeroDeAcertos++;						
+					}else 
+					if(p->next->value->pagina_referenciada == addr &&
+				 	 p->next->value->presente_ausente == 0 ){
+				 	 	flagAcerto = 1;
+					 	p->next->value->ultimo_acesso = tempo;
+						if(rw == 'R' || rw == 'W'){
+							p->next->value->bit_R = 1;
+						}
+						if(rw == 'W'){
+							p->next->value->pagina_alterada = 1;
+							numeroDePaginasSujas++;
+						}
+						p->next->value->presente_ausente = 1;
+						numeroDeFalhas++;
+						for(int i = 0; i < memoriaVirtual->tamanho;i++){
+							if(memoriaVirtual->items[i]->next != NULL){
+								Item *p1 = memoriaVirtual->items[i];
+								for( ; p1->next != NULL ; p1 = p1->next){
+									if(minimo > p1->next->value->ultimo_acesso){
+										trocaAddr = p1->next->value->pagina_referenciada;
+									}
+								}
+							}
+						}
+
+						for(int i = 0 ; i < mem_principal->tamanho ; i++){
+							if(mem_principal->items[i].offset == trocaAddr){
+								mem_principal->items[i].offset = addr;
+								break;
+							}
+						}
+					}else{
+						continue;
+					}
+				}
+
+				if(flagAcerto != 1){
+
+					numeroDeFalhas++;
+					for(int i = 0; i < memoriaVirtual->tamanho;i++){
+						if(memoriaVirtual->items[i]->next != NULL){
+							Item *p1 = memoriaVirtual->items[i];
+							for( ; p1->next != NULL ; p1 = p1->next){
+								if(minimo > p1->next->value->ultimo_acesso){
+									trocaAddr = p1->next->value->pagina_referenciada;
+								}
+							}
+						}
+					}
+
+					for(int i = 0 ; i < mem_principal->tamanho ; i++){
+						if(mem_principal->items[i].offset == trocaAddr){
+							mem_principal->items[i].offset = addr;
+							break;
+						}
+					}
+					Entrada *e = (Entrada*)calloc(1, sizeof(Entrada));
+						
+					e->pagina_referenciada = addr;
 					e->ultimo_acesso = tempo;
 					e->pagina_alterada = 0;
 					if(rw == 'R' || rw == 'W'){
@@ -158,28 +242,11 @@ int main(int argc, char const *argv[]){
 						numeroDePaginasSujas++;
 					}
 					e->presente_ausente = 1;
-					
-						
+
 					p->next = novo_item(&addr_shiftado, e);
-					memoriaVirtual->cont++;
-				}
-			}else 
-			if(mem_principal->cont == mem_principal->tamanho){
-				for(int i = 0; i < memoriaVirtual->tamanho;i++){
-					if(memoriaVirtual->items[i]->next != NULL){
-						Item *p1 = memoriaVirtual->items[i];
-						for( ; p1->next != NULL ; p1 = p1->next){
-							if(minimo > ){
-								//tentando
-							}
-						}
-					}
 				}
 			}
 			tempo++;
-			printf("Acertos => %d\n", numeroDeAcertos);
-			printf("Falhas => %d\n\n", numeroDeFalhas);
-			printf("tempo => %d\n",tempo);
 		}
 	}else if( !strcmp( algoritmo, "nru" ) ){
 
