@@ -93,7 +93,7 @@ int main(int argc, char const *argv[]){
 			addr_shiftado = addr >> s;
 			index = addr_shiftado%memoriaVirtual->tamanho;
 			flagAcerto = 0;
-			nruFlag = 0;
+			
 			if(mem_principal->cont != mem_principal->tamanho){
 				if(memoriaVirtual->items[index]->next == NULL){
 					numeroDeFalhas++;
@@ -260,6 +260,7 @@ int main(int argc, char const *argv[]){
 			addr_shiftado = addr >> s;
 			index = addr_shiftado%memoriaVirtual->tamanho;
 			flagAcerto = 0;
+			nruFlag = 0;
 			if(mem_principal->cont != mem_principal->tamanho){
 				if(memoriaVirtual->items[index]->next == NULL){
 					numeroDeFalhas++;
@@ -390,12 +391,15 @@ int main(int argc, char const *argv[]){
 								}else if (nruFlag == 0 && minimo > p1->next->value->ultimo_acesso && 
 									p1->next->value->bit_R == 0 && p1->next->value->pagina_alterada == 1){
 									trocaAddr = p1->next->value->pagina_referenciada;
+									nruFlag = 1;
 								}else if (nruFlag == 0 && minimo > p1->next->value->ultimo_acesso && 
 									p1->next->value->bit_R == 1 && p1->next->value->pagina_alterada == 0){
 									trocaAddr = p1->next->value->pagina_referenciada;
+									nruFlag = 1;
 								}else if (nruFlag == 0 && minimo > p1->next->value->ultimo_acesso && 
 									p1->next->value->bit_R == 1 && p1->next->value->pagina_alterada == 1){
 									trocaAddr = p1->next->value->pagina_referenciada;
+									nruFlag = 1;
 								}
 							}
 						}
@@ -436,7 +440,7 @@ int main(int argc, char const *argv[]){
 			addr_shiftado = addr >> s;
 			index = addr_shiftado%memoriaVirtual->tamanho;
 			flagAcerto = 0;
-			nruFlag = 0;
+			
 			if(mem_principal->cont != mem_principal->tamanho){
 				if(memoriaVirtual->items[index]->next == NULL){
 					numeroDeFalhas++;
